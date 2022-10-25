@@ -1,14 +1,14 @@
-from requests import get
-from bs4 import BeautifulSoup
-from colorama import Fore
+import requests
+import bs4
+import colorama
 from threading import ThreadError
 import schedule
 import telebot
 import time
 
 
-API_KEY = # Votre clef api (str)
-CHAT_ID = # Votre CHAT_ID (int)
+API_KEY = '5407432563:AAFYQjZ3AfsXgWx1xfuMIley1WxWK25s9lI'
+CHAT_ID = 5492714660
 bot = telebot.TeleBot(API_KEY)
 
 
@@ -17,42 +17,41 @@ bot = telebot.TeleBot(API_KEY)
 # -- Requête pour récupérer une page
 def info_site(url):
     # Requête sur un url
-    res = get(url)
+    res = requests.get(url, timeout=(2, 5))
     # Si la requête n'aboutie pas on annule tout
     if not res.ok:
         print('Erreur')
         exit()
     # On met le site en bien pour pouvoir l'utiliser
-    site = BeautifulSoup(res.text, 'lxml')
+    site = bs4.BeautifulSoup(res.text, 'lxml')
     
     return site
 
 
 def rechercher_produit(produit:str, uniquement_magasin:list=None, nombre_de_produits_a_afficher:int=5):
+    """Retourne une liste de produits
+
+    Args:
+        produit (str): Nom du produit recherché
+        uniquement_magasin (list, optional): Les magasins que l'on veut uniquement. Defaults to None.
+        nombre_de_produits_a_afficher (int, optional): Assez clair quand même. Defaults to 5.
+
+    Returns:
+        list: Liste de dico contenant les noms et liens des produits
+    """
     # On effectue une requête pour obtenir une liste des produits proche du souhait de l'utilisateur
     site = info_site(f'https://ledenicheur.fr/search?search={produit}')
-    # On défini les listes contenants le nom et le lien des produits
-    liste_nom = []
-    liste_lien = []
+    # On défini la liste contenant le nom et le lien des produits
+    liste_noms_liens = []
     # Pour chaque enfant dans le tableau contenant la liste des produits
     for child in site.find('ul', class_ = 'ListUl-sc-xo0c91-0 fTCido').findChildren():
         # On récupère le lien et le nom
-        lien = child.find('a', class_ = 'InternalLink-sc-t916l0-1 hYGtTZ ProductLink-sc-ezay95-0 cXuLZZ')
-        nom = child.find('span', class_ = 'Text--bzqghn kBBoFI titlesmalltext')
-        print(nom)
-        # Si le nom existe et qu'il n'a jamais été trouvé
-        if nom and nom.text not in liste_nom:
-            liste_nom.append(nom.text)
-        # Si le lien existe et qu'il n'a jamais été trouvé
-        if lien and lien['href'] not in liste_lien:
-            liste_lien.append(lien['href'])
-    # On affiche la liste à l'utilisateur
-    propostiion = ''
-    print(liste_nom)
-    for i in range(nombre_de_produits_a_afficher):
-        propostiion += (f'{i+1} : {liste_nom[i]}\n')
-    
-    return propostiion, liste_lien
+        lien = "ledenicheur.fr" + child.find('a', class_ = 'InternalLink-sc-t916l0-1 hYGtTZ ProductLink-sc-ezay95-0 cXuLZZ').get('href')
+        nom = child.find('span', class_ = 'Text--d6brv6 cmPSrj titlesmalltext').text
+        # On ajoute tout à une liste de dico
+        liste_noms_liens.append({"nom": nom, "lien": lien})
+        
+    return liste_noms_liens
     
 
 
@@ -64,7 +63,7 @@ def afficher_produit(nb, liste_lien, uniquement_magasin):
 
     # On affiche le titre du produit
     titre_produit = site.find('h1', class_ = 'Text--bzqghn bhbQJh h2text Title-sc-16x82tr-2 daHeSK')
-    print(f'\n{Fore.YELLOW}{titre_produit.text} : {Fore.WHITE}')
+    print(f'\n{colorama.Fore.YELLOW}{titre_produit.text} : {colorama.Fore.WHITE}')
     # On récupère le tableau contenant tout les prix et les magasins
     ul = site.find('ul', class_ = 'PriceList-sc-wkzg9v-0 fbrkVc')
 
@@ -82,11 +81,10 @@ def afficher_produit(nb, liste_lien, uniquement_magasin):
     return liste_tout
     
 
-    
 
-   
+print(rechercher_produit('splatoon 3'))
 
-
+exit()
 
 # 1er argument : (str)(obligatoire) Le produit ou l'id du produit que vous voulez
 # 2ème argument : (list)(facultatif) Pour avoir le meilleur prix dans les enseignes que vous voulez
@@ -133,6 +131,6 @@ def prix(message):
         
     
     
-    
-    
+
+
 bot.infinity_polling()
