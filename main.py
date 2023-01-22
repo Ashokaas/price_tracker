@@ -7,8 +7,8 @@ import telebot
 import time
 
 
-API_KEY = '5407432563:AAFYQjZ3AfsXgWx1xfuMIley1WxWK25s9lI'
-CHAT_ID = 5492714660
+API_KEY = 'str API KEY'
+CHAT_ID = 'int chat id'
 bot = telebot.TeleBot(API_KEY)
 
 
